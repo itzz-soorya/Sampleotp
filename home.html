@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .logo {
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: #333;
+            font-size: 28px;
+            font-weight: 300;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .otp-section {
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        .otp-section.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        .timer {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .resend-btn {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+            margin-top: 10px;
+        }
+
+        .resend-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .phone-section {
+            display: block;
+        }
+
+        .phone-section.hide {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>OTP Verification</h1>
+        </div>
+
+        <div id="successMessage" class="success-message">
+            OTP verified successfully! ✓
+        </div>
+
+        <div id="errorMessage" class="error-message">
+            Invalid OTP. Please try again.
+        </div>
+
+        <!-- Phone Number Section -->
+        <div id="phoneSection" class="phone-section">
+            <div class="form-group">
+                <label for="phoneNumber">Enter Phone Number</label>
+                <input 
+                    type="tel" 
+                    id="phoneNumber" 
+                    placeholder="+1 (555) 123-4567"
+                    maxlength="15"
+                >
+            </div>
+            <button id="sendOtpBtn" class="btn" onclick="sendOTP()">
+                Send OTP
+            </button>
+        </div>
+
+        <!-- OTP Verification Section -->
+        <div id="otpSection" class="otp-section">
+            <div class="form-group">
+                <label for="otpInput">Enter OTP</label>
+                <input 
+                    type="text" 
+                    id="otpInput" 
+                    placeholder="Enter 6-digit OTP received on your phone"
+                    maxlength="6"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                >
+                <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                    For testing: Check server console for OTP
+                </small>
+            </div>
+            <button id="verifyOtpBtn" class="btn" onclick="verifyOTP()">
+                Verify OTP
+            </button>
+            <button id="resendOtpBtn" class="btn resend-btn" onclick="resendOTP()" disabled>
+                Resend OTP
+            </button>
+            <div id="timer" class="timer">
+                Resend OTP in <span id="countdown">30</span> seconds
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPhoneNumber = '';
+        let countdownTimer;
+        let timeLeft = 30;
+
+        async function sendOTP() {
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            
+            if (!phoneNumber) {
+                showError('Please enter a valid phone number');
+                return;
+            }
+
+            if (phoneNumber.length < 10) {
+                showError('Please enter a valid phone number');
+                return;
+            }
+
+            // Disable button to prevent multiple clicks
+            const sendBtn = document.getElementById('sendOtpBtn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Sending...';
+
+            try {
+                // Call backend API to generate OTP
+                const response = await fetch('/api/otp/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ phoneNumber: phoneNumber })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Store phone number for verification
+                    currentPhoneNumber = phoneNumber;
+                    
+                    // Hide phone section and show OTP section
+                    document.getElementById('phoneSection').classList.add('hide');
+                    document.getElementById('otpSection').classList.add('show');
+                    
+                    // Clear any previous messages
+                    hideMessages();
+                    
+                    // Show success message
+                    showSuccess('OTP sent to your phone number successfully!');
+                    
+                    // Start countdown timer
+                    startCountdown();
+                } else {
+                    showError(data.error || 'Failed to send OTP');
+                }
+            } catch (error) {
+                console.error('Error sending OTP:', error);
+                showError('Network error. Please try again.');
+            } finally {
+                // Re-enable button
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Send OTP';
+            }
+        }
+
+        async function verifyOTP() {
+            const enteredOTP = document.getElementById('otpInput').value.trim();
+            
+            if (!enteredOTP) {
+                showError('Please enter the OTP');
+                return;
+            }
+
+            if (enteredOTP.length !== 6) {
+                showError('Please enter a 6-digit OTP');
+                return;
+            }
+
+            // Disable button to prevent multiple clicks
+            const verifyBtn = document.getElementById('verifyOtpBtn');
+            verifyBtn.disabled = true;
+            verifyBtn.textContent = 'Verifying...';
+
+            try {
+                // Call backend API to verify OTP
+                const response = await fetch('/api/otp/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        phoneNumber: currentPhoneNumber, 
+                        otp: enteredOTP 
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showSuccess('OTP verified successfully! ✓');
+                    // Reset form after successful verification
+                    setTimeout(() => {
+                        resetForm();
+                    }, 2000);
+                } else {
+                    showError(data.error || 'Invalid OTP. Please try again.');
+                    document.getElementById('otpInput').value = '';
+                }
+            } catch (error) {
+                console.error('Error verifying OTP:', error);
+                showError('Network error. Please try again.');
+            } finally {
+                // Re-enable button
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = 'Verify OTP';
+            }
+        }
+
+        async function resendOTP() {
+            // Disable button to prevent multiple clicks
+            const resendBtn = document.getElementById('resendOtpBtn');
+            resendBtn.disabled = true;
+            resendBtn.textContent = 'Sending...';
+
+            try {
+                // Call backend API to generate new OTP
+                const response = await fetch('/api/otp/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ phoneNumber: currentPhoneNumber })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Clear OTP input
+                    document.getElementById('otpInput').value = '';
+                    
+                    // Clear messages
+                    hideMessages();
+                    
+                    // Show success message
+                    showSuccess('New OTP sent to your phone number successfully!');
+                    
+                    // Restart countdown
+                    startCountdown();
+                } else {
+                    showError(data.error || 'Failed to resend OTP');
+                    // Re-enable the resend button if there's an error
+                    resendBtn.disabled = false;
+                    resendBtn.textContent = 'Resend OTP';
+                }
+            } catch (error) {
+                console.error('Error resending OTP:', error);
+                showError('Network error. Please try again.');
+                // Re-enable the resend button if there's an error
+                resendBtn.disabled = false;
+                resendBtn.textContent = 'Resend OTP';
+            }
+        }
+
+        function startCountdown() {
+            timeLeft = 30;
+            document.getElementById('resendOtpBtn').disabled = true;
+            document.getElementById('timer').style.display = 'block';
+            
+            countdownTimer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('countdown').textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdownTimer);
+                    document.getElementById('resendOtpBtn').disabled = false;
+                    document.getElementById('timer').style.display = 'none';
+                }
+            }, 1000);
+        }
+
+        function showSuccess(message) {
+            hideMessages();
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.classList.add('show');
+        }
+
+        function showError(message) {
+            hideMessages();
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        function hideMessages() {
+            document.getElementById('successMessage').classList.remove('show');
+            document.getElementById('errorMessage').classList.remove('show');
+        }
+
+        function resetForm() {
+            // Clear all inputs
+            document.getElementById('phoneNumber').value = '';
+            document.getElementById('otpInput').value = '';
+            document.getElementById('otpInput').placeholder = 'Enter 6-digit OTP';
+            
+            // Hide OTP section and show phone section
+            document.getElementById('otpSection').classList.remove('show');
+            document.getElementById('phoneSection').classList.remove('hide');
+            
+            // Clear timers and messages
+            clearInterval(countdownTimer);
+            hideMessages();
+            
+            // Reset states
+            currentPhoneNumber = '';
+            timeLeft = 30;
+            document.getElementById('resendOtpBtn').disabled = true;
+            document.getElementById('timer').style.display = 'none';
+        }
+
+        // Format phone number input
+        document.getElementById('phoneNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 10) {
+                value = value.substring(0, 10);
+            }
+            e.target.value = value;
+        });
+
+        // Allow Enter key to trigger actions
+        document.getElementById('phoneNumber').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendOTP();
+            }
+        });
+
+        document.getElementById('otpInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verifyOTP();
+            }
+        });
+    </script>
+</body>
+</html>
